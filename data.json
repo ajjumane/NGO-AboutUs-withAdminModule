@@ -1,0 +1,30 @@
+{
+    "story": "Our journey began in 2015 with a simple, unsettling observation: while the world was moving toward a digital future, thousands of children in our local communities didn't even have access to basic textbooks. What started as a small group of five teachers operating out of a borrowed garage has transformed into a movement. We believe that education is not a luxury, but a fundamental right. Over the last decade, we have evolved from distributing second-hand books to building state-of-the-art digital learning centers, ensuring that no child is left behind in the race for knowledge.\n",
+    "mission": "Our mission : To bridge the educational gap by providing quality learning resources to remote and underserved communities.",
+    "vision": "Our vision : A world where geography never limits a child's potential to learn.",
+    "values": [
+        "Integrity",
+        "Impact"
+    ],
+    "programs": [
+        {
+            "name": "Youth Education",
+            "desc": "Schooling for all"
+        },
+        {
+            "name": "Teacher Training lab",
+            "desc": "Empowering educators with modern pedagogical tools "
+        }
+    ],
+    "team": [
+        {
+            "name": "Rahul gandhi",
+            "role": "leader"
+        },
+        {
+            "name": "Donald trump",
+            "role": "co-leader"
+        }
+    ],
+    "name": "EduReach Foundation"
+}
