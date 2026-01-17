@@ -1,28 +1,12 @@
 import streamlit as st
 import json
-from supabase_client import supabase
-
-
 
 def load_data():
     try:
-        res = supabase.table("ngo_content").select("*").eq("id", 1).execute()
-        if res.data:
-            return res.data[0]
+        with open('data.json', 'r') as f:
+            return json.load(f)
     except Exception:
-        pass
-
-    return {
-        "name": "EduReach Foundation",
-        "story": "",
-        "mission": "",
-        "vision": "",
-        "values": [],
-        "programs": [],
-        "team": []
-    }
-
-
+        return {"name": "EduReach", "story": "Loading...", "mission": "Loading...", "vision": "Loading...", "programs": [], "team": []}
 
 data = load_data()
 ngo_name = data.get("name", "EduReach Foundation")
