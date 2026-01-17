@@ -1,176 +1,123 @@
 import streamlit as st
-from supabase_client import supabase
-
-# -------------------- DATA HELPERS --------------------
+import json
+import os
 
 def load_data():
-    res = supabase.table("ngo_content").select("*").eq("id", 1).execute()
-
-    if not res.data:
-        default_data = {
-            "id": 1,
-            "name": "EduReach Foundation",
-            "story": "",
-            "mission": "",
-            "vision": "",
-            "values": [],
-            "programs": [],
+    if not os.path.exists('data.json'):
+        return {
+            "name": "EduReach Foundation", 
+            "story": "Our journey began in 2015...", 
+            "mission": "Empowering the next generation...", 
+            "vision": "A world where every child can lead...", 
+            "values": ["Inclusivity", "Transparency"], 
+            "programs": [], 
             "team": []
         }
-        supabase.table("ngo_content").insert(default_data).execute()
-        return default_data
-
-    d = res.data[0]
-
-    # SAFETY: handle NULLs from Supabase
-    d["values"] = d.get("values") or []
-    d["programs"] = d.get("programs") or []
-    d["team"] = d.get("team") or []
-
-    return d
-
+    with open('data.json', 'r') as f:
+        return json.load(f)
 
 def save_data(data):
-    supabase.table("ngo_content").update({
-        "name": data["name"],
-        "story": data["story"],
-        "mission": data["mission"],
-        "vision": data["vision"],
-        "values": data["values"],
-        "programs": data["programs"],
-        "team": data["team"]
-    }).eq("id", 1).execute()
-
-
-# -------------------- STREAMLIT SETUP --------------------
+    with open('data.json', 'w') as f:
+        json.dump(data, f, indent=4)
 
 st.set_page_config(page_title="NGO Admin Panel", layout="wide")
 
-if "data" not in st.session_state:
-    st.session_state.data = load_data()
-
-data = st.session_state.data
-
-# -------------------- STYLES --------------------
-
+# --- GLOBAL TEXT FIX ---
 st.markdown("""
-<style>
-.stApp { background-color: #f8fafc; }
-h1, h2, h3, h4, h5, h6, p, label {
-    color: #1e293b !important;
-}
-.admin-header {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    border-bottom: 4px solid #2563eb;
-    margin-bottom: 25px;
-}
-.stButton>button {
-    background-color: #2563eb;
-    color: white;
-    border-radius: 8px;
-}
-</style>
-""", unsafe_allow_html=True)
+    <style>
+    .stApp { background-color: #f8fafc; }
+    
+    /* Force ALL headers and text to Dark Slate */
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, .stText {
+        color: #1e293b !important;
+    }
 
-# -------------------- HEADER --------------------
+    .admin-header {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 15px;
+        border-bottom: 4px solid #007bff;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
 
-st.markdown(
-    f"<div class='admin-header'><h1>🛠️ {data['name']} Admin</h1>"
-    f"<p>Update website content</p></div>",
-    unsafe_allow_html=True
-)
+    /* Input Styling */
+    .stTextInput input, .stTextArea textarea {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        border: 1px solid #cbd5e1 !important;
+    }
 
-tabs = st.tabs(["📖 Story & Vision", "💎 Values", "🚀 Programs", "👥 Team"])
+    /* Expander Headers Fix */
+    .streamlit-expanderHeader p {
+        color: #1e293b !important;
+        font-weight: 600 !important;
+    }
 
-# -------------------- TAB 1 --------------------
+    /* Tab Label Fix */
+    button[data-baseweb="tab"] p {
+        color: #1e293b !important;
+    }
+    
+    .stButton>button {
+        background-color: #007bff;
+        color: white !important;
+        border-radius: 8px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-with tabs[0]:
-    st.subheader("Basic Information")
+data = load_data()
 
-    data["name"] = st.text_input("NGO Name", data["name"])
-    data["story"] = st.text_area("Our Journey", data["story"], height=200)
-    data["mission"] = st.text_input("Mission", data["mission"])
-    data["vision"] = st.text_input("Vision", data["vision"])
+st.markdown(f'<div class="admin-header"><h1>🛠️ {data.get("name")} Admin</h1><p>Update website content instantly</p></div>', unsafe_allow_html=True)
 
-    if st.button("Save Basics"):
+tab1, tab2, tab3, tab4 = st.tabs(["📖 Story & Vision", "💎 Core Values", "🚀 Programs", "👥 Team"])
+
+with tab1:
+    st.subheader("Edit Fundamentals")
+    data['name'] = st.text_input("NGO Name", data.get('name', ''))
+    data['story'] = st.text_area("Our Journey Text", data['story'], height=200)
+    data['mission'] = st.text_input("Mission Statement", data['mission'])
+    data['vision'] = st.text_input("Vision Statement", data['vision'])
+    if st.button("Save Basic Info"):
         save_data(data)
-        st.success("Saved successfully")
+        st.success("Basics updated!")
 
-# -------------------- TAB 2 --------------------
-
-with tabs[1]:
-    st.subheader("Core Values")
-
-    for i, val in enumerate(data["values"]):
-        cols = st.columns([6, 1])
-        data["values"][i] = cols[0].text_input(
-            f"Value {i+1}", val, key=f"value_{i}"
-        )
-        if cols[1].button("❌", key=f"del_value_{i}"):
-            data["values"].pop(i)
-            save_data(data)
-            st.rerun()
-
-    new_value = st.text_input("Add New Value")
+with tab2:
+    st.subheader("Manage Core Values")
+    for i, val in enumerate(data['values']):
+        c1, c2 = st.columns([5, 1])
+        data['values'][i] = c1.text_input(f"Value {i+1}", val, key=f"val_{i}")
+        if c2.button("🗑️", key=f"del_v_{i}"):
+            data['values'].pop(i)
+            save_data(data); st.rerun()
+    new_v = st.text_input("Add New Value")
     if st.button("Add Value"):
-        if new_value.strip():
-            data["values"].append(new_value.strip())
-            save_data(data)
-            st.rerun()
+        if new_v: data['values'].append(new_v); save_data(data); st.rerun()
 
-# -------------------- TAB 3 --------------------
+with tab3:
+    st.subheader("Our Programs")
+    for i, prog in enumerate(data['programs']):
+        with st.expander(f"📦 {prog['name']}"):
+            data['programs'][i]['name'] = st.text_input("Title", prog['name'], key=f"pn_{i}")
+            data['programs'][i]['desc'] = st.text_area("Description", prog['desc'], key=f"pd_{i}")
+            if st.button(f"Delete {prog['name']}", key=f"btn_p_{i}"):
+                data['programs'].pop(i); save_data(data); st.rerun()
+    st.markdown("#### ➕ Add New")
+    np_name = st.text_input("Program Name")
+    np_desc = st.text_area("Program Description")
+    if st.button("Save New Program"):
+        if np_name and np_desc: data['programs'].append({"name": np_name, "desc": np_desc}); save_data(data); st.rerun()
 
-with tabs[2]:
-    st.subheader("Programs")
-
-    for i, prog in enumerate(data["programs"]):
-        with st.expander(prog.get("name", f"Program {i+1}")):
-            prog["name"] = st.text_input(
-                "Program Name", prog.get("name", ""), key=f"prog_name_{i}"
-            )
-            prog["desc"] = st.text_area(
-                "Description", prog.get("desc", ""), key=f"prog_desc_{i}"
-            )
-            if st.button("Delete Program", key=f"del_prog_{i}"):
-                data["programs"].pop(i)
-                save_data(data)
-                st.rerun()
-
-    st.markdown("### ➕ Add Program")
-    pn = st.text_input("Name")
-    pd = st.text_area("Description")
-
-    if st.button("Add Program"):
-        if pn and pd:
-            data["programs"].append({"name": pn, "desc": pd})
-            save_data(data)
-            st.rerun()
-
-# -------------------- TAB 4 --------------------
-
-with tabs[3]:
+with tab4:
     st.subheader("Team Members")
-
-    for i, m in enumerate(data["team"]):
-        with st.expander(m.get("name", f"Member {i+1}")):
-            m["name"] = st.text_input(
-                "Name", m.get("name", ""), key=f"team_name_{i}"
-            )
-            m["role"] = st.text_input(
-                "Role", m.get("role", ""), key=f"team_role_{i}"
-            )
-            if st.button("Remove Member", key=f"del_team_{i}"):
-                data["team"].pop(i)
-                save_data(data)
-                st.rerun()
-
-    tn = st.text_input("New Member Name")
-    tr = st.text_input("New Member Role")
-
-    if st.button("Add Member"):
-        if tn and tr:
-            data["team"].append({"name": tn, "role": tr})
-            save_data(data)
-            st.rerun()
+    for i, m in enumerate(data['team']):
+        with st.expander(f"👤 {m['name']}"):
+            data['team'][i]['name'] = st.text_input("Name", m['name'], key=f"tn_{i}")
+            data['team'][i]['role'] = st.text_input("Role", m['role'], key=f"tr_{i}")
+            if st.button(f"Remove {m['name']}", key=f"btn_t_{i}"):
+                data['team'].pop(i); save_data(data); st.rerun()
+    nt_name = st.text_input("Member Name")
+    nt_role = st.text_input("Member Role")
+    if st.button("Save Team"):
+        if nt_name and nt_role: data['team'].append({"name": nt_name, "role": nt_role}); save_data(data); st.rerun()
